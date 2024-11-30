@@ -27,4 +27,6 @@ Route::put('/put-user/{id}', [UsersController::class, 'UpdateUserById']);
 Route::delete('/delete-user/{id}', [UsersController::class, 'DeleteUserById']);
 Route::options('/get-options', [UsersController::class, 'GetOptions']);
 
+// the PUT, PATCH, OPTION and HEAD Endpoints are not Working Need To check
+
 Route::put('/patchupdate', [UsersController::class, 'AlternatePutOrPatchMethod']);
