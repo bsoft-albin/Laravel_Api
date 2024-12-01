@@ -73,14 +73,13 @@ class UsersController extends Controller
     //this is also Query Parameter Method, i.e see Delete Method
     public function PatchUpdateUserById(Request $request, $id)
     {
+        // only pass the fields mentioned in the Validate Array !!!!
         // You may want to add validation for specific fields
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $id,
             // add other optional fields as needed
         ]);
-
-        //$data = $request->validate();
 
         // Partially update the user in the database using DB facade
         $updated = DB::table('users')->where('id', $id)->update($validated);
@@ -138,25 +137,23 @@ class UsersController extends Controller
     //below method is using HEAD Http Method !!!
     public function GetSingleUserUsingHeadHttpVerb(Request $request)
     {
+        // Retrieve the 'id' query parameter
         $id = $request->query('id');
 
+        // Validate the presence of 'id'
         if (!$id) {
-            return response()->json([
-                'statusCode' => 400,
-                'statusMessage' => 'ID query parameter is required'
-            ]);
+            return response()->noContent(400); // No body, status code 400
         }
 
-        $user = DB::table('users')->where('id', $id)->first();
+        // Check if the user exists
+        $userExists = DB::table('users')->where('id', $id)->exists();
 
-        if (!$user) {
-            return response()->json([
-                'statusCode' => 404,
-                'statusMessage' => 'User not found'
-            ]);
+        // Respond based on the user existence
+        if (!$userExists) {
+            return response()->noContent(404); // No body, status code 404
         }
 
-        return response()->noContent(200); // HEAD will only return the headers
+        return response()->noContent(200); // No body, status code 200
     }
 
     public function GetOptions()
@@ -168,18 +165,20 @@ class UsersController extends Controller
         ])->header('Allow', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     }
 
+    // the below is working fine
     public function AlternatePutOrPatchMethod(Request $request)
     {
-
+        // only the fields listed in the Validate Array passed from the Json Body, if anything that is not presented in the Array, if give then Server will throw error !!!
         // Validate input data
         $validated = $request->validate([
+            'id'=> ['required','integer'],
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'
             // add more fields as needed
         ]);
 
         // Update the user in the database using DB facade
-        $updated = DB::table('users')->where('id', $request['id'])->update($validated);
+        $updated = DB::table('users')->where('id', $validated['id'])->update($validated);
 
         if (!$updated) {
             return response()->json(['statusCode' => 404, 'statusMessage' => 'User not found or no changes made']);
